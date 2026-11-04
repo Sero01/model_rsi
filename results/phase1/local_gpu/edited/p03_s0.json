@@ -1,0 +1,21 @@
+{
+ "id": "test/counting_and_probability/1114.json",
+ "index": 3,
+ "sample": 0,
+ "label": "edited",
+ "answer": "\\frac{11}{36}",
+ "pred": null,
+ "correct": false,
+ "seed": 3000,
+ "published_correct": [
+  1,
+  0,
+  0,
+  0
+ ],
+ "finish": "length",
+ "tokens": 32768,
+ "new_tokens": 32768,
+ "seconds": 622.7,
+ "wall_seconds": 625.3
+}

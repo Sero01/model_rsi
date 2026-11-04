@@ -1,0 +1,21 @@
+{
+ "id": "test/geometry/817.json",
+ "index": 16,
+ "sample": 0,
+ "label": "edited",
+ "answer": "\\frac{14}{3}",
+ "pred": null,
+ "correct": false,
+ "seed": 16000,
+ "published_correct": [
+  0,
+  0,
+  0,
+  0
+ ],
+ "finish": "length",
+ "tokens": 32768,
+ "new_tokens": 32768,
+ "seconds": 625.9,
+ "wall_seconds": 628.6
+}

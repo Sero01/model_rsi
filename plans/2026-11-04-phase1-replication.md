@@ -48,7 +48,7 @@ Laptop:
 - [x] Check that our rendered prompt matches the evaluation prompt format in the logs.
 - [x] Build the CPU engine and F32 GGUFs, and check them against MIT's hashes and `transformers` logits, out to 32,000 tokens.
 - [x] Measure speed: 2.96 tok/s at 1,000 tokens of context, 1.82 at 32,000. A capped sample takes about 3.95 hours, so 20 problems at 1 sample on both models would take about 5.2 days.
-- [ ] Run 20 problems on the laptop. Stopped by the user after 1,605 tokens of the first sample, with no scores. It can resume with the command in `phase1/README.md`.
+- [x] Run 20 problems locally. The laptop CPU run was stopped at 1,605 tokens. It was completed on 2026-11-04 on a Windows RTX 5050: base 1/20, edited 9/20. See `RESULTS.md`.
 
 GPU, not approved:
 

@@ -14,8 +14,14 @@
 #include <string>
 #include <vector>
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#else
 #include <fcntl.h>
 #include <sys/file.h>
+#endif
 
 namespace {
 
@@ -77,8 +83,18 @@ int main(int argc, char ** argv) {
     const int32_t max_new = argc > 6 ? std::atoi(argv[6]) : protocol::MAX_NEW_TOKENS;
 
     // Two engines appending to one file would interleave tokens without any error. The lock lasts until this process exits.
+#ifdef _WIN32
+    // Windows port: Windows locks are mandatory, so lock one byte far past EOF; ordinary appends are never blocked.
+    HANDLE lock_h = CreateFileA(tokens_path.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                                nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    OVERLAPPED lock_ov{};
+    lock_ov.OffsetHigh = 0x7FFFFFFF;
+    if (lock_h == INVALID_HANDLE_VALUE ||
+        !LockFileEx(lock_h, LOCKFILE_EXCLUSIVE_LOCK | LOCKFILE_FAIL_IMMEDIATELY, 0, 1, 0, &lock_ov)) {
+#else
     const int lock_fd = open(tokens_path.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
     if (lock_fd < 0 || flock(lock_fd, LOCK_EX | LOCK_NB) != 0) {
+#endif
         std::fprintf(stderr, "another engine holds %s\n", tokens_path.c_str());
         return EXIT_FILE_IN_USE;
     }
@@ -92,7 +108,8 @@ int main(int argc, char ** argv) {
 
     llama_backend_init();
     llama_model_params mp = llama_model_default_params();
-    mp.n_gpu_layers = 0;
+    // GPU port: RSI_GPU_LAYERS offloads layers (e.g. 99 = all); unset keeps the verified CPU path.
+    mp.n_gpu_layers = std::getenv("RSI_GPU_LAYERS") ? std::atoi(std::getenv("RSI_GPU_LAYERS")) : 0;
     llama_model * model = llama_model_load_from_file(model_path.c_str(), mp);
     if (model == nullptr) {
         std::fprintf(stderr, "cannot load %s\n", model_path.c_str());
@@ -134,7 +151,7 @@ int main(int argc, char ** argv) {
     const int64_t t_gen = llama_time_us();
     std::fprintf(stderr, "prompt %zu, replayed %zu, %.1f s\n", prompt.size(), n_replayed, (t_gen - t_start) / 1e6);
 
-    std::ofstream out(tokens_path, std::ios::app);
+    std::ofstream out(tokens_path, std::ios::app | std::ios::binary);  // binary: plain \n line ends, as on Linux
     int64_t t_window = t_gen;
     std::vector<llama_token> one(1);
     bool stopped = already_stopped;

@@ -15,7 +15,7 @@ Where this file disagrees with older notes, this file wins.
 
 - **Phase 1 is not complete.** The laptop verification is done, but there are no scores.
 - **Verified:** the rebuilt edit, the grader, the GGUFs, and logits against `transformers` out to 32,000 tokens.
-- **Local run:** stopped by the user at 1,605 tokens of the first sample, with no scores. The tokens are in `results/phase1/local/edited/p00_s0.work/tokens.txt`.
+- **Local run:** the laptop CPU run was stopped at 1,605 tokens. The 20-problem run was completed on 2026-11-04 on a Windows RTX 5050, with base 1/20 and edited 9/20. See `RESULTS.md` and `phase1/WINDOWS.md`.
 - **Exit gate:** it needs full GPU runs, which have not been approved.
 
 ## User decisions

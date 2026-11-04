@@ -1,0 +1,21 @@
+{
+ "id": "test/counting_and_probability/339.json",
+ "index": 12,
+ "sample": 0,
+ "label": "edited",
+ "answer": "12",
+ "pred": null,
+ "correct": false,
+ "seed": 12000,
+ "published_correct": [
+  0,
+  0,
+  0,
+  0
+ ],
+ "finish": "length",
+ "tokens": 32768,
+ "new_tokens": 32768,
+ "seconds": 615.6,
+ "wall_seconds": 618.4
+}

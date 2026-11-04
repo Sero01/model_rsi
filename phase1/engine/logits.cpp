@@ -35,7 +35,8 @@ int main(int argc, char ** argv) {
 
     llama_backend_init();
     llama_model_params mp = llama_model_default_params();
-    mp.n_gpu_layers = 0;
+    // GPU port: RSI_GPU_LAYERS offloads layers (e.g. 99 = all); unset keeps the verified CPU path.
+    mp.n_gpu_layers = std::getenv("RSI_GPU_LAYERS") ? std::atoi(std::getenv("RSI_GPU_LAYERS")) : 0;
     llama_model * model = llama_model_load_from_file(argv[1], mp);
     if (model == nullptr) {
         return 1;

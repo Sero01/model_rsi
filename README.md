@@ -2,7 +2,7 @@
 
 A multi-phase research project on editing small models' weights directly, without any training. Phase 1 replicates the MATH-500 edit on Qwen3.5-0.8B from "Sparks of Weight-Space Programming" (MIT CSAIL).
 
-**Status:** Phase 1 is in progress. The published edit, grader and CPU engine are verified, but no scores have been produced yet. See `RESULTS.md`.
+**Status:** Phase 1 is in progress. The published edit, grader and engine are verified. A 20-problem local run on a Windows laptop GPU scored base 1/20 and edited 9/20, against published 4/80 and 37/80 on the same problems. The exit gate still needs the full benchmark. See `RESULTS.md`. Native Windows and CUDA setup is in `phase1/WINDOWS.md`.
 
 ## Layout
 

@@ -52,3 +52,19 @@ The plan and handover are public too. This adds nothing to what MIT already publ
 - **`mathqa.py` vendored verbatim, with a stub `mcqa.py`.** `mcqa` is unpublished and only loop diagnostics use it.
 - **Grader check covers 200 texts and 500 `pred_first` values per checkpoint.** `evaluate.py:197` keeps 20 texts per shard, despite the README saying every problem.
 - **Extraction behaviour.** `mathqa.extract` falls back to the last `\boxed{}` in the thought when there is no `</think>`. A sample cut at the cap can therefore still score. We keep this because it is what produced the published scores.
+
+## Phase 1 on Windows and a local GPU, 2026-11-04
+
+A collaborator ran Phase 1 on a new machine: Windows 11 with a Core Ultra 7 255H, 23 GB RAM and an RTX 5050 Laptop GPU with 8 GB. They asked for it to run natively on Windows. The commands are in `phase1/WINDOWS.md`.
+
+| Question | Decision | Why |
+|---|---|---|
+| WSL or native | Native | WSL was not installed, and the user asked for Windows. The changes are small and guarded by platform checks, so the Linux path is unchanged. |
+| Isolation | None on Windows | Landlock and seccomp are Linux-only. The engine is llama.cpp at the pinned official tag. Phase 2 editor isolation still needs its own design. |
+| Grader timeouts | Off on Windows | Windows has no `signal.alarm`, and math-verify's fallback crashes under `-I`. This is the same no-timeout path `mathqa.py` already uses off the main thread. `check_grader.py` finds 0 disagreements. |
+| CPU or GPU | GPU, with all layers offloaded and `NVIDIA_TF32_OVERRIDE=0` | GPU decode measured 73 tok/s against 9.5 for the best CPU setting. The run is local, so it costs nothing and needs no rental approval. With TF32 off, logits match `transformers` to 0.00006, so it is held to the same verification bar as the CPU engine. |
+| One or two GPU processes | One | One engine takes about 4.1 GB at full context, and the card has 8 GB. |
+| CPU threads | 4 | Measured over 300 tokens: 4 threads 9.46 tok/s, 8 threads 8.17, 12 threads 6.90, 16 threads 6.19. |
+| Windows CPU run | Stopped after the GPU engine was verified | It was redundant. Its partial output is kept in `results/phase1/local_windows/`. |
+
+A local GPU is still not the H200 and vLLM setup, so these scores do not count toward the exit gate. The GPU and CPU engines are numerically equivalent to F32 `transformers`, not to MIT's BF16 arithmetic.

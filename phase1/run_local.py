@@ -23,8 +23,9 @@ import mathqa as Q  # noqa: E402
 SANDBOX = os.path.join(HERE, "sandbox.py")
 BASE_SEED = 0  # the protocol's seed
 SEEDS_PER_PROBLEM = 1000
-THREADS = 4
+THREADS = int(os.environ.get("RSI_THREADS", "4")) if sys.platform == "win32" else 4  # -I ignores PYTHON* vars only
 NICE = 10
+WINDOWS = sys.platform == "win32"  # Windows port: Landlock sandbox and nice are Linux-only
 
 
 def sample_seed(problem_index, sample):
@@ -37,12 +38,17 @@ def run_sample(args, gguf_path, problem, problem_index, sample, work):
     prompt_path, tokens_path = os.path.join(work, "prompt.txt"), os.path.join(work, "tokens.txt")
     with open(prompt_path, "w") as f:
         f.write("\n".join(map(str, problem["prompt_ids"])))
-    cmd = ["nice", "-n", str(NICE), sys.executable, "-I", SANDBOX, "--rw", work, "--ro", gguf_path, "--ro", args.engine,
-           "--", args.engine, gguf_path, prompt_path, tokens_path, str(sample_seed(problem_index, sample)), str(THREADS),
-           str(args.max_new_tokens)]
+    engine_cmd = [args.engine, gguf_path, prompt_path, tokens_path, str(sample_seed(problem_index, sample)), str(THREADS),
+                  str(args.max_new_tokens)]
+    if WINDOWS:
+        cmd, extra = engine_cmd, {"creationflags": subprocess.BELOW_NORMAL_PRIORITY_CLASS}
+    else:
+        cmd = ["nice", "-n", str(NICE), sys.executable, "-I", SANDBOX, "--rw", work, "--ro", gguf_path, "--ro",
+               args.engine, "--", *engine_cmd]
+        extra = {}
     started = time.time()
     with open(os.path.join(work, "engine.log"), "a") as log:
-        done = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=log, text=True)
+        done = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=log, text=True, **extra)
     if done.returncode != 0:
         raise SystemExit(f"generate failed for {work}, see engine.log")
     result = json.loads(done.stdout.strip().splitlines()[-1])

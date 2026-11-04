@@ -1,0 +1,21 @@
+{
+ "id": "test/intermediate_algebra/964.json",
+ "index": 6,
+ "sample": 0,
+ "label": "edited",
+ "answer": "1",
+ "pred": null,
+ "correct": false,
+ "seed": 6000,
+ "published_correct": [
+  0,
+  0,
+  0,
+  0
+ ],
+ "finish": "length",
+ "tokens": 32768,
+ "new_tokens": 32768,
+ "seconds": 616.9,
+ "wall_seconds": 619.8
+}

@@ -1,0 +1,12 @@
+base: 20 samples over 20 problems
+  accuracy        5.0% (clustered SE 5.0)
+  published       7.9% on all 500, 5.0% on these problems
+  cut at cap      95.0% (published 93.0%)
+  mean tokens     31,483 (published 30,868)
+  speed           51.63 tok/s over 3.4 h
+edited: 20 samples over 20 problems
+  accuracy        45.0% (clustered SE 11.4)
+  published       48.1% on all 500, 46.2% on these problems
+  cut at cap      45.0% (published 33.0%)
+  mean tokens     23,911 (published 22,037)
+  speed           52.60 tok/s over 2.5 h

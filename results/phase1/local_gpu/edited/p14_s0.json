@@ -1,0 +1,21 @@
+{
+ "id": "test/number_theory/686.json",
+ "index": 14,
+ "sample": 0,
+ "label": "edited",
+ "answer": "4",
+ "pred": "4",
+ "correct": true,
+ "seed": 14000,
+ "published_correct": [
+  1,
+  0,
+  0,
+  0
+ ],
+ "finish": "stop",
+ "tokens": 28156,
+ "new_tokens": 28156,
+ "seconds": 479.0,
+ "wall_seconds": 482.2
+}

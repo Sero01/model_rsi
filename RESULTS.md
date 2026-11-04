@@ -81,3 +81,54 @@ Fixed after the review, with `phase1/test_generate.py` failing first and passing
 The third gap is closed too: logits now match at the real context size, past the 2,048-token boundary and through 32-token chunks, as shown above.
 
 The reviewer also noted that BF16 against F32 arithmetic could shift how often the model enters loops over 30,000 tokens. A cut share that differs from MIT's on CPU may therefore not mean a pipeline bug.
+
+## Phase 1 on Windows and a local GPU, 2026-11-04
+
+**Status:** the 20-problem local run is complete, on a new machine: Windows 11 with a Core Ultra 7 255H, 23 GB RAM and an RTX 5050 Laptop GPU (8 GB). These are the first scores this project has produced. This is a small local GPU, so they do not count toward the exit gate. Setup is in `phase1/WINDOWS.md`, and the choices are in `DECISIONS.md`.
+
+### Verification repeated on Windows
+
+| Check | CPU engine (MinGW GCC 16.2) | GPU engine (MSVC and CUDA 13.1, sm_120) |
+|---|---|---|
+| Downloads and pins | All SHA-256 values and commits match `phase1/README.md` | Same inputs |
+| Rebuilt edit | SHA-256 `fd1e42ac…737b553`. All 488 tensors compared, and only the 2 manifest tensors differ, with the expected entry, column and row counts. | Same file |
+| `verify_edit.py` relative change | Off by 1.04e-6 against a 1e-6 tolerance on layer 19. In float64 the true value is 0.0810628, and both the manifest's 0.0810612 and our float32 0.0810601 are float32 approximations of it. The bits are identical. | Same file |
+| Grader | 0 disagreements | Same grader |
+| GGUFs | OK, only `blk.15` and `blk.19` differ | Same files |
+| Sampler test | 7 of 7 | 7 of 7 |
+| `test_generate.py` | 3 of 3, with write failure skipped because Windows has no `RLIMIT_FSIZE` | 3 of 3, same skip |
+| Logits against `transformers`, 12 cases | 12 of 12, max 0.00002 | 12 of 12, max 0.00006, with `NVIDIA_TF32_OVERRIDE=0` |
+| Logits with llama.cpp's default TF32 | Not applicable | Base model fails 4 of 6, up to 0.0106 |
+
+### Speed
+
+| Setup | tok/s |
+|---|---|
+| CPU, 4 threads, short context | 9.46. 8, 12 and 16 threads gave 8.17, 6.90 and 6.19. |
+| CPU, two engines at once | about 5.3 each, about 11.6 in total |
+| GPU, by context | 72.2 at 0 to 4k, 60.2 at 8k to 12k, 50.0 at 20k to 24k, 43.5 at 32k |
+| GPU, whole run | base 51.6 over 3.4 h, edited 52.6 over 2.5 h |
+
+The GPU run held all 25 layers, the KV cache (774 MiB F32) and the recurrent state on the card, using about 4.1 GB of VRAM. Only the 970 MiB token-embedding table stayed in host RAM. Samples that hit the cap took 573 to 852 s. The last few were slower, probably from heat or other load on the laptop.
+
+### Local run results, GPU
+
+MATH-500 `rows[0::25]`, 20 problems, 1 sample each, protocol think35, seed `problem * 1000`. From `results/phase1/local_gpu_summary.txt`:
+
+| | Accuracy | Clustered SE | Published on these 20 | Published on all 500 | Cut at cap | Published cut | Mean tokens | Published mean |
+|---|---|---|---|---|---|---|---|---|
+| Base | 1/20 = 5.0% | 5.0 | 4/80 = 5.0% | 7.9% | 95.0% | 93.0% | 31,483 | 30,868 |
+| Edited | 9/20 = 45.0% | 11.4 | 37/80 = 46.2% | 48.1% | 45.0% | 33.05% | 23,911 | 22,037 |
+
+Per problem, against MIT's 4 published samples:
+
+- **Edited:** correlation r = 0.82 with MIT's per-problem accuracy. It agrees with MIT's majority on 17 of 20 problems.
+- **Base:** it solves too few problems for a correlation to mean anything (r = -0.11). It agrees with MIT's majority on 19 of 20. Our one correct base answer, problem index 5, was 0 of 4 in MIT's samples.
+
+Base accuracy, cut share and length all match. Edited accuracy is within 1.2 points of MIT's score on the same problems, and its mean length is within 9%. Edited cut share is 45% against 33%. That gap is 2.4 of 20 samples, well inside the noise of 20 single samples, but it is the largest deviation. The reviewer's BF16-versus-F32 loop concern could also explain it.
+
+The edit raises accuracy from 5% to 45% and lowers cut share from 95% to 45% on these problems. That is the published effect in direction and size. With 20 problems the standard error is about 11 points, so this checks the pipeline and is not a replication. The exit gate still needs the full benchmark, with 4 samples, on a vLLM-class GPU.
+
+### Local run, Windows CPU, partial
+
+Stopped by design when the GPU engine passed its checks. Edited problem 0 finished on CPU in 5,859 tokens and was wrong. The GPU sample of the same problem was right, and MIT had 4 of 4, so this is sampling variance. Base problem 0 stopped at 7,720 tokens and edited problem 1 at 2,339. All of it is in `results/phase1/local_windows/`.

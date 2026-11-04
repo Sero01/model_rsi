@@ -1,0 +1,21 @@
+{
+ "id": "test/precalculus/1133.json",
+ "index": 17,
+ "sample": 0,
+ "label": "edited",
+ "answer": "3R^2",
+ "pred": null,
+ "correct": false,
+ "seed": 17000,
+ "published_correct": [
+  0,
+  0,
+  0,
+  0
+ ],
+ "finish": "length",
+ "tokens": 32768,
+ "new_tokens": 32768,
+ "seconds": 616.0,
+ "wall_seconds": 618.8
+}

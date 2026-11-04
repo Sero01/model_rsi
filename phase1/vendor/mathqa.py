@@ -328,6 +328,8 @@ def mv():
 def _timeouts():
     """math-verify's timeouts use signal.alarm, which works only in the main thread; elsewhere they raise and the
     library would silently return 'not equal'. Off the main thread the checks run without its timeouts."""
+    if sys.platform == "win32":  # Windows port: no signal.alarm; math-verify's process-spawn fallback breaks under -I
+        return None
     return 5 if threading.current_thread() is threading.main_thread() else None
 
 

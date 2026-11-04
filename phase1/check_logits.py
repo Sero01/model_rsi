@@ -33,8 +33,9 @@ def llama_logits(binary, gguf_path, ids, n_batched, work, context=()):
     ids_path, out_path = os.path.join(work, "ids.txt"), os.path.join(work, "out.f32")
     with open(ids_path, "w") as f:
         f.write("\n".join(map(str, ids)))
-    cmd = [sys.executable, "-I", SANDBOX, "--rw", work, "--ro", gguf_path, "--ro", binary, "--",
-           binary, gguf_path, ids_path, out_path, str(THREADS), str(n_batched), *map(str, context)]
+    cmd = [binary, gguf_path, ids_path, out_path, str(THREADS), str(n_batched), *map(str, context)]
+    if sys.platform != "win32":  # Windows port: the Landlock sandbox is Linux-only
+        cmd = [sys.executable, "-I", SANDBOX, "--rw", work, "--ro", gguf_path, "--ro", binary, "--", *cmd]
     done = subprocess.run(cmd, capture_output=True, text=True)
     if done.returncode != 0:
         raise SystemExit(f"logits failed:\n{done.stderr[-2000:]}")

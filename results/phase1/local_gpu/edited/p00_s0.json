@@ -1,0 +1,21 @@
+{
+ "id": "test/precalculus/807.json",
+ "index": 0,
+ "sample": 0,
+ "label": "edited",
+ "answer": "\\left( 3, \\frac{\\pi}{2} \\right)",
+ "pred": "(3, \\frac{\\pi}{2})",
+ "correct": true,
+ "seed": 0,
+ "published_correct": [
+  1,
+  1,
+  1,
+  1
+ ],
+ "finish": "stop",
+ "tokens": 8929,
+ "new_tokens": 8929,
+ "seconds": 123.8,
+ "wall_seconds": 126.3
+}

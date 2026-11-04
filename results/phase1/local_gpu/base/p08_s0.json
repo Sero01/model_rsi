@@ -1,0 +1,21 @@
+{
+ "id": "test/prealgebra/2086.json",
+ "index": 8,
+ "sample": 0,
+ "label": "base",
+ "answer": "40",
+ "pred": null,
+ "correct": false,
+ "seed": 8000,
+ "published_correct": [
+  0,
+  0,
+  0,
+  0
+ ],
+ "finish": "length",
+ "tokens": 32768,
+ "new_tokens": 32768,
+ "seconds": 611.9,
+ "wall_seconds": 615.1
+}

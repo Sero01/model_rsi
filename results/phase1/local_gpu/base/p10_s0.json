@@ -1,0 +1,21 @@
+{
+ "id": "test/algebra/1934.json",
+ "index": 10,
+ "sample": 0,
+ "label": "base",
+ "answer": "13",
+ "pred": null,
+ "correct": false,
+ "seed": 10000,
+ "published_correct": [
+  0,
+  0,
+  1,
+  0
+ ],
+ "finish": "length",
+ "tokens": 32768,
+ "new_tokens": 32768,
+ "seconds": 588.3,
+ "wall_seconds": 591.2
+}

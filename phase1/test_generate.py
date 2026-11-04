@@ -6,7 +6,6 @@ Runs the real engine for a few tokens at a time, so it needs about 4 GB of RAM a
 """
 import json
 import os
-import resource
 import shutil
 import subprocess
 import sys
@@ -64,6 +63,10 @@ def test_second_engine_refused(binary, gguf, work):
 
 def test_write_failure_is_fatal(binary, gguf, work):
     fresh(work)
+    if sys.platform == "win32":  # Windows port: no RLIMIT_FSIZE, so this case cannot be staged
+        print("SKIP: failed write is fatal (no RLIMIT_FSIZE on Windows)", flush=True)
+        return True
+    import resource
 
     def limit_file_size():
         resource.setrlimit(resource.RLIMIT_FSIZE, (WRITE_LIMIT_BYTES, WRITE_LIMIT_BYTES))

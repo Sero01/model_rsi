@@ -10,3 +10,6 @@
 | 6 | Checks that stop at 2,000 tokens say little about a sample that runs to 32,768. | Test at the real context size, and in the real batching path. | Open item from the review. |
 | 7 | A new script failed on `import check_logits`, because `python -I` leaves the script's directory off the import path. | Scripts run with `-I` must add their own directory to `sys.path`. | `check_logits_long.py`. |
 | 8 | Going public raises checks beyond secrets. | Before any public push, also check commit identity, paths in logs, and redistribution rights for data and vendored code. | First push of this repo. |
+| 9 | llama.cpp's CUDA backend turns on TF32 tensor-core math for cuBLAS, so an "F32" GPU engine failed the logit check, with errors up to 0.0106. | On any new backend, rerun `check_logits.py` before sampling. On CUDA, set `NVIDIA_TF32_OVERRIDE=0`. | Windows GPU port. With TF32 off, the error is 0.00006 or less. |
+| 10 | `python -I` ignores `PYTHONUTF8`, so on Windows `make_gguf.py` failed on cp1252. | On Windows, run every script as `python -I -X utf8`. | Windows port. |
+| 11 | MinGW GCC's linker breaks when its install path has a space, as in a Windows user folder. | Install or copy the toolchain to a path without spaces. | Windows port. |

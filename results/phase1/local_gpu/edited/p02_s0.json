@@ -1,0 +1,21 @@
+{
+ "id": "test/number_theory/1055.json",
+ "index": 2,
+ "sample": 0,
+ "label": "edited",
+ "answer": "203",
+ "pred": "424",
+ "correct": false,
+ "seed": 2000,
+ "published_correct": [
+  0,
+  0,
+  0,
+  0
+ ],
+ "finish": "stop",
+ "tokens": 19905,
+ "new_tokens": 19905,
+ "seconds": 338.3,
+ "wall_seconds": 341.2
+}

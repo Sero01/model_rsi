@@ -11,3 +11,8 @@ results/phase1/problems.jsonl
 results/phase1/local/**/prompt.txt
 results/phase1/local/**/engine.log
 results/phase1/local/run.log
+# Windows CPU and GPU runs, same rules
+results/phase1/local_*/**/prompt.txt
+results/phase1/local_*/**/engine.log
+results/phase1/local_*/run*.log
+results/phase1/local_*/run*.err
