@@ -1,0 +1,20 @@
+cmake_minimum_required(VERSION 3.16)
+project(phase1_engine CXX C)
+
+set(CMAKE_BUILD_TYPE Release CACHE STRING "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_SERVER OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_COMMON OFF CACHE BOOL "" FORCE)
+set(GGML_NATIVE ON CACHE BOOL "" FORCE)
+set(GGML_OPENMP ON CACHE BOOL "" FORCE)
+
+add_subdirectory(${LLAMA_SRC} llama.cpp EXCLUDE_FROM_ALL)
+
+foreach(tool generate logits sampler_test)
+  add_executable(${tool} ${tool}.cpp)
+  target_link_libraries(${tool} PRIVATE llama)
+  target_compile_features(${tool} PRIVATE cxx_std_17)
+endforeach()

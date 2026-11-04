@@ -1,0 +1,82 @@
+// Write the logits after the last token, for comparison with the reference implementation.
+//
+//   logits <model.gguf> <ids.txt> <out.f32> <threads> <n_batched>
+//
+// The first n_batched tokens are decoded as one batch and the rest one at a time, as generation does.
+#include "llama.h"
+
+#include <algorithm>
+#include <clocale>
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
+#include <string>
+#include <vector>
+
+int main(int argc, char ** argv) {
+    if (argc != 6) {
+        std::fprintf(stderr, "usage: %s <model.gguf> <ids.txt> <out.f32> <threads> <n_batched>\n", argv[0]);
+        return 2;
+    }
+    std::setlocale(LC_NUMERIC, "C");
+    std::vector<llama_token> ids;
+    {
+        std::ifstream in(argv[2]);
+        llama_token id;
+        while (in >> id) {
+            ids.push_back(id);
+        }
+    }
+    const int threads = std::atoi(argv[4]);
+    const int n_batched = std::atoi(argv[5]);
+
+    llama_backend_init();
+    llama_model_params mp = llama_model_default_params();
+    mp.n_gpu_layers = 0;
+    llama_model * model = llama_model_load_from_file(argv[1], mp);
+    if (model == nullptr) {
+        return 1;
+    }
+    llama_context_params cp = llama_context_default_params();
+    cp.n_ctx = (uint32_t) ids.size() + 16;
+    cp.n_batch = cp.n_ctx;
+    cp.n_ubatch = cp.n_ctx;
+    cp.n_threads = threads;
+    cp.n_threads_batch = threads;
+    cp.type_k = GGML_TYPE_F32;
+    cp.type_v = GGML_TYPE_F32;
+    cp.flash_attn_type = LLAMA_FLASH_ATTN_TYPE_DISABLED;  // as in generate.cpp
+    llama_context * ctx = llama_init_from_model(model, cp);
+    if (ctx == nullptr) {
+        return 1;
+    }
+    llama_batch_ext * batch = llama_batch_ext_init(ctx);
+
+    size_t done = 0;
+    while (done < ids.size()) {
+        const size_t count = done == 0 ? std::max<size_t>(n_batched, 1) : 1;
+        llama_batch_ext_clear(batch);
+        for (size_t i = done; i < done + count && i < ids.size(); ++i) {
+            const int32_t idx = llama_batch_ext_add_token(batch, 0, ids[i]);
+            const llama_pos pos = (llama_pos) i;
+            llama_batch_ext_set_pos(batch, idx, &pos);
+        }
+        done = std::min(ids.size(), done + count);
+        const int32_t last = (int32_t) (done == count ? count : 1) - 1;
+        llama_batch_ext_set_output_logits(batch, last, true);
+        if (llama_process(ctx, LLAMA_PROCESS_TYPE_DECODE, batch) != 0) {
+            std::fprintf(stderr, "decode failed at %zu\n", done);
+            return 1;
+        }
+    }
+
+    const int n_vocab = llama_vocab_n_tokens(llama_model_get_vocab(model));
+    const float * logits = llama_get_logits_ith(ctx, -1);
+    std::ofstream out(argv[3], std::ios::binary);
+    out.write(reinterpret_cast<const char *>(logits), n_vocab * sizeof(float));
+
+    llama_batch_ext_free(batch);
+    llama_free(ctx);
+    llama_model_free(model);
+    return 0;
+}

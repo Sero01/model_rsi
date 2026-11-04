@@ -1,0 +1,13 @@
+external/
+models/
+.tmp/
+.env
+.superpowers/
+.venv/
+__pycache__/
+
+# Public repo: regenerated locally, and not ours to redistribute or machine-specific.
+results/phase1/problems.jsonl
+results/phase1/local/**/prompt.txt
+results/phase1/local/**/engine.log
+results/phase1/local/run.log
