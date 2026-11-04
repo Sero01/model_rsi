@@ -14,7 +14,7 @@ Where this file disagrees with older notes, this file wins.
 ## Current state
 
 - **Phase 1 is not complete.** The laptop verification is done, but there are no scores.
-- **Verified:** the rebuilt edit, the grader, the GGUFs, and logits against `transformers` on inputs up to 2,000 tokens.
+- **Verified:** the rebuilt edit, the grader, the GGUFs, and logits against `transformers` out to 32,000 tokens.
 - **Local run:** stopped by the user at 1,605 tokens of the first sample, with no scores. The tokens are in `results/phase1/local/edited/p00_s0.work/tokens.txt`.
 - **Exit gate:** it needs full GPU runs, which have not been approved.
 
@@ -45,20 +45,18 @@ Where this file disagrees with older notes, this file wins.
 
 If the machine has a GPU that vLLM supports, ask the user about the GPU run before investing more in the CPU pipeline. `phase1/eval_math.py` has not been written.
 
-## Do first, before generating again
+## Review items
 
-From the fresh-context review. None of these invalidate past results, because there are no scored samples yet.
-
-1. **Lock the token file (`phase1/engine/generate.cpp`, `phase1/run_local.py`).** A killed `run_local.py` leaves `generate` running as an orphan. A rerun then starts a second engine on the same file, the tokens interleave, and the sample still gets graded. Take `flock(LOCK_EX|LOCK_NB)` on `tokens.txt` in `generate`, and exit if it is held.
-2. **Check the token count (`generate.cpp`, `run_local.py`).** A failed write, such as a full disk, is never noticed. Check `out` after each write, and have `grade` require `len(ids) == result["tokens"]`.
-3. **Extend the logit check (`phase1/engine/logits.cpp`, `phase1/check_logits.py`).** It uses at most 2,048 cells, while `generate` uses 33,024. It never crosses the 2,048-token padding boundary, and it never compares 32-token chunks without output, which is the path used for prompts and replay. Add an `n_ctx` argument and compare at the real size and in chunks. Then compare replay against a batched decode of a transcript of 10,000 tokens or more.
+The fresh-context review's Important findings are fixed, and `RESULTS.md` has the evidence.
 
 Minor items, fix when convenient:
 
 - On resume, cut anything after the last newline in `tokens.txt`, and reject non-numeric lines.
 - `new_tokens` and `seconds` in a record cover only the last process, so speed after a resume reads wrong, and `score_local.py` divides by zero if every record shows 0 seconds.
 - `score_local.py` compares with whole-benchmark cut share and mean tokens without saying so in its output.
-- `sampler_test.cpp` never tests a positive logit under the penalty, and nothing tests resume in `generate`.
+- `sampler_test.cpp` never tests a positive logit under the penalty.
+
+A killed `run_local.py` still leaves `generate` running. A restart then stops with an error instead of corrupting the sample, but you still have to kill the old engine.
 
 ## Protocol
 

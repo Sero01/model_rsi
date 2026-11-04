@@ -20,3 +20,7 @@ User stopped the local run at 1,605 tokens of edited p00_s0, and approved updati
 Final: fresh-context review done (no Critical). Important items deferred to the new machine because the run is stopped: engine file lock, token-count check, long-context logit comparison. Listed in HANDOVER.md.
 Ruling: review's 3-hour replay estimate and 2x slowdown not adopted — measured replay was 17 min at 32K and speed fell 1.6x at 32K — cost if wrong: projection is optimistic, which the first long sample would show.
 Ruling: first commit before the phase ends — user asked to push so the project can move machines — cost if wrong: none.
+Final: fixed second engine corrupting a sample — test_generate second_engine RED→GREEN, suite 4/4, sandbox and sampler tests green.
+Final: fixed unnoticed write failure and token count mismatch — test_generate write_failure and grade RED→GREEN, suite 4/4.
+Final: logit check extended to generate's context and chunk size and past the 2,048 boundary; check_logits_long.py added to 32,000 tokens on the base model only, since both models share the same engine path. Results pending.
+Final: logit checks pass: 12 of 12 at generate's settings on both models, and at 4,096, 8,000, 16,000 and 32,000 tokens on base (max 0.00055). Fix pass complete. Minors deferred, listed in HANDOVER.md.

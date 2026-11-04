@@ -1,0 +1,10 @@
+transcript: 32841 tokens
+reference at 4096: 0.04 h
+reference at 8000: 0.08 h
+reference at 16000: 0.19 h
+reference at 32000: 0.52 h
+PASS: 4096 tokens: top-20 overlap 20, max log-prob error 0.00002, same argmax True
+PASS: 8000 tokens: top-20 overlap 20, max log-prob error 0.00003, same argmax True
+PASS: 16000 tokens: top-20 overlap 20, max log-prob error 0.00011, same argmax True
+PASS: 32000 tokens: top-20 overlap 20, max log-prob error 0.00055, same argmax True
+OK

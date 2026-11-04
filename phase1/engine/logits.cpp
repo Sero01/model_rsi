@@ -1,8 +1,9 @@
 // Write the logits after the last token, for comparison with the reference implementation.
 //
-//   logits <model.gguf> <ids.txt> <out.f32> <threads> <n_batched>
+//   logits <model.gguf> <ids.txt> <out.f32> <threads> <n_batched> [n_ctx chunk]
 //
-// The first n_batched tokens are decoded as one batch and the rest one at a time, as generation does.
+// The first n_batched tokens are decoded in chunks with logits only after the last one, and the rest one at a time with
+// logits each time, as generation does. By default they are one chunk, in a context just big enough for the input.
 #include "llama.h"
 
 #include <algorithm>
@@ -14,8 +15,8 @@
 #include <vector>
 
 int main(int argc, char ** argv) {
-    if (argc != 6) {
-        std::fprintf(stderr, "usage: %s <model.gguf> <ids.txt> <out.f32> <threads> <n_batched>\n", argv[0]);
+    if (argc != 6 && argc != 8) {
+        std::fprintf(stderr, "usage: %s <model.gguf> <ids.txt> <out.f32> <threads> <n_batched> [n_ctx chunk]\n", argv[0]);
         return 2;
     }
     std::setlocale(LC_NUMERIC, "C");
@@ -28,7 +29,9 @@ int main(int argc, char ** argv) {
         }
     }
     const int threads = std::atoi(argv[4]);
-    const int n_batched = std::atoi(argv[5]);
+    const size_t n_batched = std::max(std::atoi(argv[5]), 1);
+    const uint32_t n_ctx = argc == 8 ? (uint32_t) std::atoi(argv[6]) : (uint32_t) ids.size() + 16;
+    const uint32_t chunk = argc == 8 ? (uint32_t) std::atoi(argv[7]) : n_ctx;
 
     llama_backend_init();
     llama_model_params mp = llama_model_default_params();
@@ -38,9 +41,9 @@ int main(int argc, char ** argv) {
         return 1;
     }
     llama_context_params cp = llama_context_default_params();
-    cp.n_ctx = (uint32_t) ids.size() + 16;
-    cp.n_batch = cp.n_ctx;
-    cp.n_ubatch = cp.n_ctx;
+    cp.n_ctx = n_ctx;
+    cp.n_batch = chunk;
+    cp.n_ubatch = chunk;
     cp.n_threads = threads;
     cp.n_threads_batch = threads;
     cp.type_k = GGML_TYPE_F32;
@@ -54,16 +57,15 @@ int main(int argc, char ** argv) {
 
     size_t done = 0;
     while (done < ids.size()) {
-        const size_t count = done == 0 ? std::max<size_t>(n_batched, 1) : 1;
+        const size_t count = done < n_batched ? std::min<size_t>({chunk, n_batched - done, ids.size() - done}) : 1;
         llama_batch_ext_clear(batch);
-        for (size_t i = done; i < done + count && i < ids.size(); ++i) {
+        for (size_t i = done; i < done + count; ++i) {
             const int32_t idx = llama_batch_ext_add_token(batch, 0, ids[i]);
             const llama_pos pos = (llama_pos) i;
             llama_batch_ext_set_pos(batch, idx, &pos);
         }
-        done = std::min(ids.size(), done + count);
-        const int32_t last = (int32_t) (done == count ? count : 1) - 1;
-        llama_batch_ext_set_output_logits(batch, last, true);
+        done += count;
+        llama_batch_ext_set_output_logits(batch, (int32_t) count - 1, done >= std::min(n_batched, ids.size()));
         if (llama_process(ctx, LLAMA_PROCESS_TYPE_DECODE, batch) != 0) {
             std::fprintf(stderr, "decode failed at %zu\n", done);
             return 1;

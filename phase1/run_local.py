@@ -50,9 +50,11 @@ def run_sample(args, gguf_path, problem, problem_index, sample, work):
     return result
 
 
-def grade(tok, work, answer):
+def grade(tok, work, answer, expected_tokens):
     with open(os.path.join(work, "tokens.txt")) as f:
         ids = [int(line) for line in f if line.strip()]
+    if len(ids) != expected_tokens:
+        raise SystemExit(f"{work}: tokens.txt has {len(ids)} tokens, the engine reported {expected_tokens}")
     text = tok.decode(ids, skip_special_tokens=True)
     pred = Q.extract(text)[0]
     return text, pred, bool(Q.is_correct(pred, answer))
@@ -86,7 +88,7 @@ def main():
                     continue
                 work = os.path.join(args.out, label, name + ".work")
                 result = run_sample(args, os.path.abspath(gguf_path), problem, index, sample, work)
-                text, pred, correct = grade(tok, work, problem["answer"])
+                text, pred, correct = grade(tok, work, problem["answer"], result["tokens"])
                 with gzip.open(os.path.join(args.out, label, f"{name}.txt.gz"), "wt") as f:
                     f.write(text)
                 record = {"id": problem["id"], "index": index, "sample": sample, "label": label, "answer": problem["answer"],

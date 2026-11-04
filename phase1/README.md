@@ -79,14 +79,15 @@ python -I phase1/verify_gguf.py models/gguf/base-f32.gguf models/gguf/p50c-f32.g
 ```bash
 python3 -I phase1/test_sandbox.py
 .tmp/build/sampler_test
-mkdir -p .tmp/logits_check
+mkdir -p .tmp/test_generate .tmp/logits_check
+python -I phase1/test_generate.py models/gguf/base-f32.gguf .tmp/build/generate .tmp/test_generate
 python -I phase1/check_logits.py $R/models/Qwen3.5-0.8B $R/models/gguf/base-f32.gguf $R/.tmp/build/logits results/phase1/problems.jsonl \
     $EXP/eval/unedited/parts/math500_s1of10/math500_first_samples.jsonl.gz $R/.tmp/logits_check
 python -I phase1/check_logits.py $R/models/Qwen3.5-0.8B-p50c $R/models/gguf/p50c-f32.gguf $R/.tmp/build/logits results/phase1/problems.jsonl \
     $EXP/eval/p50c/parts/math500_s1of10/math500_first_samples.jsonl.gz $R/.tmp/logits_check
 ```
 
-`check_logits.py` needs about 6 GB of RAM, so do not run it during a generation. Stored output is in `results/phase1/logits_*.txt`.
+`check_logits.py` needs about 6 GB of RAM, so do not run it during a generation. `check_logits_long.py` takes the same arguments and compares out to 32,000 tokens. It takes hours on a laptop CPU. Stored output is in `results/phase1/logits_*.txt`.
 
 ## Run and score
 
@@ -100,6 +101,6 @@ setsid nohup .venv/bin/python -I phase1/run_local.py \
 .venv/bin/python -I phase1/score_local.py results/phase1/local
 ```
 
-To stop the run, kill `run_local.py` and then `generate` by PID, and confirm `generate` is gone before restarting. Two engines on one token file would corrupt the sample without any error (see `HANDOVER.md`). `pkill -f` can match your own shell, so avoid it.
+To stop the run, kill `run_local.py` and then `generate` by PID. If `generate` is still running, a restart stops with an error, because the engine locks its token file. `pkill -f` can match your own shell, so avoid it.
 
 To resume, run the same command again: finished samples are skipped and the unfinished one replays its saved tokens. Replay took 17 minutes at 32,000 tokens on the laptop.

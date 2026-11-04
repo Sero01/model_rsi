@@ -11,8 +11,9 @@
 | Edit rebuilt from `edit.npz` | SHA-256 `fd1e42ac…737b553`, identical to the LFS hash of the published full checkpoints. All 488 tensors compared, and only the 2 manifest tensors differ. |
 | Grader | No disagreements on 200 published texts and 500 `pred_first` values per checkpoint. |
 | GGUFs | 320 tensors compared. Only `blk.15.ffn_down.weight` and `blk.19.ffn_down.weight` differ, by 65,260 and 64,928 entries. Cast to BF16, they match MIT's base and edited hashes. |
-| Logits against F32 `transformers` | Top-20 log-prob error at most 0.00002, on both models, on 73- and 2,000-token inputs, batched and stepped. Top 20 identical. |
-| Sandbox and sampler tests | 13 of 13 and 7 of 7 pass. |
+| Logits against F32 `transformers` | Top-20 log-prob error at most 0.00002, on both models, on 73- and 2,100-token inputs, batched, stepped and in `generate`'s configuration. Top 20 identical. |
+| Logits at long context, base model | At most 0.00055 out to 32,000 tokens. See below. |
+| Engine, sandbox and sampler tests | 4 of 4, 13 of 13 and 7 of 7 pass. |
 
 ### Engine error, resolved
 
@@ -23,6 +24,16 @@ With flash attention on, stepped decoding differed from `transformers` by a top-
 | Error | 0.00081 | 0.00773 | 0.01855 | 0.02510 | 0.02851 | 0.02739 | 0.02793 | 0.02637 |
 
 With flash attention off, the error at 0, 1 and 50 stepped tokens is 0.00001, 0.00001 and 0.00002. For scale, BF16 against F32 arithmetic in `transformers` differs by 0.07774 on the same 2,000-token input.
+
+### Logits at long context
+
+Base model, in `generate`'s context and chunk size, on a published transcript, against `transformers` in cached chunks of the same size:
+
+| Context tokens | 4,096 | 8,000 | 16,000 | 32,000 |
+|---|---|---|---|---|
+| Top-20 log-prob error | 0.00002 | 0.00003 | 0.00011 | 0.00055 |
+
+The top 20 and the top token are the same at every length. The error grows with context, faster than linearly at the end. We did not trace the cause, but it stays under the 0.001 limit and is about 140 times smaller than the 0.078 gap between BF16 and F32 arithmetic. One transcript was tested. The edited model was not run at this length, because it shares the engine path and differs only in two tensors.
 
 ### Speed and memory
 
@@ -62,10 +73,11 @@ None. The run started at 2026-11-04T10:10:40Z and stopped after about 9 minutes,
 
 A reviewer read the pipeline against llama.cpp, vLLM and MIT's code while the run was going, and found nothing that invalidates samples. Sampler parity, stop tokens, positions, context sizing, grading, scoring and the published figures all checked out.
 
-Open from the review, none of it fixed yet:
+Fixed after the review, with `phase1/test_generate.py` failing first and passing now (4 of 4):
 
-- Two engines on one token file interleave tokens with no error.
-- Nothing checks that the token file matches the engine's count.
-- Logits have not been compared at the real context size, past a 2,048-token boundary, or through 32-token chunks without output.
+- Two engines on one token file interleaved tokens with no error. The engine now locks the file.
+- Nothing checked that the token file matched the engine's count. Failed writes are now fatal, and grading checks the count.
+
+The third gap is closed too: logits now match at the real context size, past the 2,048-token boundary and through 32-token chunks, as shown above.
 
 The reviewer also noted that BF16 against F32 arithmetic could shift how often the model enters loops over 30,000 tokens. A cut share that differs from MIT's on CPU may therefore not mean a pipeline bug.

@@ -14,11 +14,15 @@
 #include <string>
 #include <vector>
 
+#include <fcntl.h>
+#include <sys/file.h>
+
 namespace {
 
 // Without flash attention, each batched token reserves attention scores over the whole context, so keep batches small.
 constexpr int32_t BATCH_SIZE = 32;
 constexpr int32_t PROGRESS_EVERY = 1000;
+constexpr int EXIT_FILE_IN_USE = 3;
 // vLLM stops at the tokenizer's eos and at generation_config's eos.
 constexpr llama_token STOP_TOKENS[] = {248046 /* <|im_end|> */, 248044 /* <|endoftext|> */};
 
@@ -71,6 +75,13 @@ int main(int argc, char ** argv) {
     const uint32_t seed = (uint32_t) std::strtoul(argv[4], nullptr, 10);
     const int32_t threads = std::atoi(argv[5]);
     const int32_t max_new = argc > 6 ? std::atoi(argv[6]) : protocol::MAX_NEW_TOKENS;
+
+    // Two engines appending to one file would interleave tokens without any error. The lock lasts until this process exits.
+    const int lock_fd = open(tokens_path.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
+    if (lock_fd < 0 || flock(lock_fd, LOCK_EX | LOCK_NB) != 0) {
+        std::fprintf(stderr, "another engine holds %s\n", tokens_path.c_str());
+        return EXIT_FILE_IN_USE;
+    }
 
     const std::vector<llama_token> prompt = read_ids(prompt_path);
     std::vector<llama_token> generated = read_ids(tokens_path);
@@ -132,6 +143,10 @@ int main(int argc, char ** argv) {
         const llama_token id = llama_sampler_sample(chain, ctx, -1);
         generated.push_back(id);
         out << id << '\n' << std::flush;
+        if (!out) {
+            std::fprintf(stderr, "cannot write %s\n", tokens_path.c_str());
+            return 1;
+        }
         stopped = is_stop(id);
         if (generated.size() % PROGRESS_EVERY == 0) {
             const int64_t now = llama_time_us();

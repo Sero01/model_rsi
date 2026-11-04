@@ -46,7 +46,7 @@ Laptop:
 - [x] Compare tensor hashes against `RikiyaT/...` and `ML-Intern-lab/...` and report any mismatch.
 - [x] Regrade MIT's published first samples with our grader, base and p50c, and require agreement with `per_problem.json`. The logs keep 200 texts and 500 `pred_first` values per checkpoint, so that is what was checked.
 - [x] Check that our rendered prompt matches the evaluation prompt format in the logs.
-- [x] Build the CPU engine and F32 GGUFs, and check them against MIT's hashes and `transformers` logits.
+- [x] Build the CPU engine and F32 GGUFs, and check them against MIT's hashes and `transformers` logits, out to 32,000 tokens.
 - [x] Measure speed: 2.96 tok/s at 1,000 tokens of context, 1.82 at 32,000. A capped sample takes about 3.95 hours, so 20 problems at 1 sample on both models would take about 5.2 days.
 - [ ] Run 20 problems on the laptop. Stopped by the user after 1,605 tokens of the first sample, with no scores. It can resume with the command in `phase1/README.md`.
 
