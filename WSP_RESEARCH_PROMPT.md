@@ -122,6 +122,8 @@ Can a frontier model (Opus 5.5), with no gradients, find and fix specific defect
 
 ## 4. Phases
 
+> **Amendment, 2026-11-06 (Sero):** Phase 1 is closed without its exit gate; there will be no full MATH-500 replication. Phase 2 builds the editor and its isolation but skips the scored runs; its exit gate becomes "the setup works end to end, the canary test passes, and an unscored smoke run has a clean audit". Then Phase 3. Runs use the collaborator's RTX 5050 (8 GB). The benchmark for Phase 3 baselines is to be decided. Reasons are in `DECISIONS.md`, and the build plan is `plans/2026-11-06-phase2-editor.md`.
+
 ### Phase 1: Replicate the MIT result (no LLM editing yet)
 **Goal:** reproduce 7.9% → 48.1% on MATH-500 with their checkpoint and protocol.
 

@@ -25,3 +25,4 @@ Final: fixed unnoticed write failure and token count mismatch — test_generate 
 Final: logit check extended to generate's context and chunk size and past the 2,048 boundary; check_logits_long.py added to 32,000 tokens on the base model only, since both models share the same engine path. Results pending.
 Final: logit checks pass: 12 of 12 at generate's settings on both models, and at 4,096, 8,000, 16,000 and 32,000 tokens on base (max 0.00055). Fix pass complete. Minors deferred, listed in HANDOVER.md.
 Windows/GPU 2026-11-04: port to native Windows (see phase1/WINDOWS.md). GPU engine verified 12/12 with NVIDIA_TF32_OVERRIDE=0, and it fails with TF32 on. 20-problem GPU run complete: base 1/20, edited 9/20; published on the same problems 4/80 and 37/80. Exit gate still open.
+Phase 1 closed 2026-11-06 without exit gate, by user decision. Continued in tasks/phase2-ledger.md.

@@ -68,3 +68,22 @@ A collaborator ran Phase 1 on a new machine: Windows 11 with a Core Ultra 7 255H
 | Windows CPU run | Stopped after the GPU engine was verified | It was redundant. Its partial output is kept in `results/phase1/local_windows/`. |
 
 A local GPU is still not the H200 and vLLM setup, so these scores do not count toward the exit gate. The GPU and CPU engines are numerically equivalent to F32 `transformers`, not to MIT's BF16 arithmetic.
+
+## Trajectory change, 2026-11-06
+
+User decisions:
+
+| Question | Decision | Why |
+|---|---|---|
+| Phase 1 | Closed without its exit gate. No full MATH-500 replication on GPU. | User decision. The edit, grader and engine are verified, and the 20-problem GPU run reproduced the published effect in direction and size (`RESULTS.md`). An exact replication would cost a GPU rental or about 22 days on the RTX 5050, for a result already published twice. |
+| Phase 2 | Build the editor and its isolation. Skip the scored runs. | User decision, following the experimenter's recommendation. Phase 3 reuses this editor, so it has to exist. Skipping the scored positive control means a Phase 3 failure cannot be blamed on the models with certainty. The setup itself is still proven end to end by a canary test and an unscored smoke run. |
+| Target after Phase 2 | Phase 3, other small models | User decision. |
+| GPU for Phase 2 and 3 | The collaborator's RTX 5050 Laptop GPU (8 GB) | User decision. It has a verified CUDA engine (`phase1/WINDOWS.md`) and costs nothing. |
+| Dev machine | HP ZBook Firefly 14 G10, CPU only | It has no NVIDIA GPU, so it is for code, tests and weight inspection. Specs are in `user/preferences.md`. |
+
+Consequences, recorded so they are not forgotten:
+
+- **Scores stay non-comparable.** A laptop GPU with llama.cpp in F32 is not MIT's H200 with vLLM in BF16. Phase 3 deltas (base against edited on the same engine) remain meaningful. Absolute numbers do not compare with published ones.
+- **The forward-pass unit must shrink.** Astra's pass was up to 512 generations or 1,024 teacher-forced texts. The RTX 5050 decodes about 52 tok/s on one stream, so the pass size will be set from measured batched throughput and recorded as a deviation.
+- **2B-class models in Phase 3** do not fit the 8 GB card in F32. That is a Phase 3 decision, not taken now.
+- **Still open:** which benchmark and protocol replace MATH-500 for Phase 3 baselines.

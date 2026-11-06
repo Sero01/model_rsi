@@ -16,3 +16,6 @@ results/phase1/local_*/**/prompt.txt
 results/phase1/local_*/**/engine.log
 results/phase1/local_*/run*.log
 results/phase1/local_*/run*.err
+
+# Phase 2 editor run state and transcripts
+runs/

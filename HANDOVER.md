@@ -13,10 +13,10 @@ Where this file disagrees with older notes, this file wins.
 
 ## Current state
 
-- **Phase 1 is not complete.** The laptop verification is done, but there are no scores.
+- **2026-11-06: Phase 1 is closed without its exit gate, by user decision.** Phase 2 is active: build the editor, skip its scored runs, then Phase 3. Read `plans/2026-11-06-phase2-editor.md` and the 2026-11-06 section of `DECISIONS.md` first.
 - **Verified:** the rebuilt edit, the grader, the GGUFs, and logits against `transformers` out to 32,000 tokens.
 - **Local run:** the laptop CPU run was stopped at 1,605 tokens. The 20-problem run was completed on 2026-11-04 on a Windows RTX 5050, with base 1/20 and edited 9/20. See `RESULTS.md` and `phase1/WINDOWS.md`.
-- **Exit gate:** it needs full GPU runs, which have not been approved.
+- **Exit gate:** waived by the user. No full MATH-500 run will be made.
 
 ## User decisions
 
@@ -79,7 +79,7 @@ With 20 problems the clustered SE near 48% is about 9 to 11 points, so a local s
 
 ## Do not
 
-- Do not start Phase 2 or any editor work.
+- Do not run the editor before Gates A and B in `plans/2026-11-06-phase2-editor.md` are approved.
 - Do not rent a GPU or spend money without asking.
 - Do not put raw weights in any prompt.
 - Do not add the edit's location, its failure mode or reference scores to `CLAUDE.md`.

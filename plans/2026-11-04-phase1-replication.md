@@ -4,6 +4,8 @@ Date: 2026-11-04
 ## Goal
 Reproduce MATH-500 base 7.9% and edited 48.1% with the published edit and protocol. The exit gate is in `WSP_RESEARCH_PROMPT.md`, with the additions below.
 
+**Status, 2026-11-06:** closed without the exit gate, by user decision. Phase 2 continues in `plans/2026-11-06-phase2-editor.md`.
+
 **Status, 2026-11-04:** the laptop steps are done, and the user stopped the local sample run early. The GPU steps have not been approved. `HANDOVER.md` set the laptop-first order and dropped the thinking-off control, and this plan now reflects both.
 
 ## Layout

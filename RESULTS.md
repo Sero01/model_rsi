@@ -82,6 +82,10 @@ The third gap is closed too: logits now match at the real context size, past the
 
 The reviewer also noted that BF16 against F32 arithmetic could shift how often the model enters loops over 30,000 tokens. A cut share that differs from MIT's on CPU may therefore not mean a pipeline bug.
 
+## Phase 1 status, 2026-11-06
+
+Closed without its exit gate, by user decision (`DECISIONS.md`, "Trajectory change"). The 20-problem GPU run below is the last Phase 1 measurement. There is no full MATH-500 result.
+
 ## Phase 1 on Windows and a local GPU, 2026-11-04
 
 **Status:** the 20-problem local run is complete, on a new machine: Windows 11 with a Core Ultra 7 255H, 23 GB RAM and an RTX 5050 Laptop GPU (8 GB). These are the first scores this project has produced. This is a small local GPU, so they do not count toward the exit gate. Setup is in `phase1/WINDOWS.md`, and the choices are in `DECISIONS.md`.
